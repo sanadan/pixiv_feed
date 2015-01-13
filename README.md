@@ -1,4 +1,4 @@
-# nicorepo_feed
+# pixiv_feed
 Generate atom feed from pixiv follow new illusts.
 
 ## install
