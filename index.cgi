@@ -6,11 +6,13 @@ PIXIV_URI = 'http://www.pixiv.net/bookmark_new_illust.php'
 require 'bundler/setup'
 Bundler.require
 require 'rss/maker'
+require 'pp'
 
 def main
   config = Pitcgi.get( PIXIV_PIT, :require => {
     "id" => "Mail address",
-    "password" => "Password"
+    "password" => "Password",
+    "thumbnail" => true
   })
 
   pixiv = Pixiv.client( config[ 'id' ], config[ 'password' ] )
@@ -21,9 +23,14 @@ def main
     link = data.at( '.work' )[ 'href' ]
     item[ :link ] = URI.join( 'http://www.pixiv.net', link ).to_s
     link2 = URI.join( 'http://touch.pixiv.net', link ).to_s
-    thumbnail = data.at( '._thumbnail' )[ 'src' ]
-    thumbnail.sub!( /150x150/, '128x128' )
-  	item[ :content ] = "<a href=\"#{link2}\">mobile</a><br><a href=\"#{item[ :link ]}\"><img src=\"#{thumbnail}\" border=\"0\"></a>"
+    thumbnail = ""
+#pp config[ 'thumbnail' ]
+    if config[ 'thumbnail' ] then
+      thumbnail = data.at( '._thumbnail' )[ 'src' ]
+      thumbnail.sub!( /150x150/, '128x128' )
+      thumbnail = "<img src=\"#{thumbnail}\" border=\"0\">"
+    end
+    item[ :content ] = "<a href=\"#{link2}\">mobile</a><br><a href=\"#{item[ :link ]}\">#{thumbnail}</a>"
     item[ :title ] = data.at( '.title' ).text
     item[ :date ] = Time.now
     
