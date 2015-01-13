@@ -12,7 +12,7 @@ def main
   config = Pitcgi.get( PIXIV_PIT, :require => {
     "id" => "Mail address",
     "password" => "Password",
-    "thumbnail" => true
+    "thumbnail" => 'true or false'
   })
 
   pixiv = Pixiv.client( config[ 'id' ], config[ 'password' ] )
