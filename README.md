@@ -5,12 +5,9 @@ Generate atom feed from pixiv follow new illusts.
 For Ubuntu 14.04
 
     cd /var/www
-    git clone https://github.com/sanadan/pixiv_feed.git
-    cd pixiv_feed
-    bundle install
-    ./index.cgi
-    sudo ln -s /var/www/pixiv_feed/pixiv_feed.conf /etc/apache2/conf-enabled
-    sudo service apache2 restart
+    git clone https://github.com/sanadan/pixiv_feed2.git
+    cd pixiv_feed2
+    ./setup
 
 ## Licence
 MIT

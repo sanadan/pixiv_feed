@@ -10,7 +10,7 @@ require 'pp'
 
 def main
   config = Pitcgi.get( PIXIV_PIT, :require => {
-    "id" => "Mail address",
+    "id" => "pixiv ID or mail address",
     "password" => "Password",
     "thumbnail" => 'true or false'
   })

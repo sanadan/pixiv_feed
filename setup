@@ -1,0 +1,7 @@
+#!/bin/sh
+bundle install
+pitcgi init
+html/index.cgi
+sudo ln -s /var/www/pixiv_feed2/pixiv_feed2.conf /etc/apache2/conf-enabled
+sudo service apache2 restart
+
