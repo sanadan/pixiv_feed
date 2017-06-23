@@ -1,3 +1,11 @@
+GIT
+  remote: git://github.com/sanadan/pixiv.git
+  revision: 056b678e916c99c23dfd2f1ca3f32357152b6098
+  branch: login
+  specs:
+    pixiv (0.0.9)
+      mechanize (~> 2.0)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -17,16 +25,14 @@ GEM
     mime-types (3.1)
       mime-types-data (~> 3.2015)
     mime-types-data (3.2016.0521)
-    mini_portile2 (2.1.0)
+    mini_portile2 (2.2.0)
     net-http-digest_auth (1.4.1)
     net-http-persistent (2.9.4)
-    nokogiri (1.7.1)
-      mini_portile2 (~> 2.1.0)
+    nokogiri (1.8.0)
+      mini_portile2 (~> 2.2.0)
     ntlm-http (0.1.1)
     pitcgi (0.1.0)
       scrambled_eggs
-    pixiv (0.0.9)
-      mechanize (~> 2.0)
     scrambled_eggs (0.1.0)
     unf (0.1.4)
       unf_ext
@@ -38,7 +44,7 @@ PLATFORMS
 
 DEPENDENCIES
   pitcgi
-  pixiv
+  pixiv!
 
 BUNDLED WITH
-   1.14.6
+   1.15.1

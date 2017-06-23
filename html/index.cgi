@@ -27,6 +27,7 @@ def main
     if config[ 'thumbnail' ] then
       thumbnail = data.at( '._thumbnail' )[ 'data-src' ]
       thumbnail.sub!( /150x150/, '128x128' )
+      thumbnail.sub!( /_master/, '_square' )
       thumbnail = "<img src=\"#{thumbnail}\" border=\"0\">"
     end
     item[ :content ] = "<a href=\"#{link2}\">mobile</a><br><a href=\"#{item[ :link ]}\">#{thumbnail}</a>"
