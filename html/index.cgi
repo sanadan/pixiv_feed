@@ -24,10 +24,9 @@ def main
     item[ :link ] = URI.join( 'http://www.pixiv.net', link ).to_s
     link2 = URI.join( 'http://touch.pixiv.net', link ).to_s
     thumbnail = ""
-#pp config[ 'thumbnail' ]
     if config[ 'thumbnail' ] then
       thumbnail = data.at( '._thumbnail' )[ 'src' ]
-      thumbnail.sub!( /150x150/, '128x128' )
+      #thumbnail.sub!( /150x150/, '128x128' )
       thumbnail = "<img src=\"#{thumbnail}\" border=\"0\">"
     end
     item[ :content ] = "<a href=\"#{link2}\">mobile</a><br><a href=\"#{item[ :link ]}\">#{thumbnail}</a>"
