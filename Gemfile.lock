@@ -1,3 +1,11 @@
+GIT
+  remote: git://github.com/sanadan/pixiv.git
+  revision: 056b678e916c99c23dfd2f1ca3f32357152b6098
+  branch: login
+  specs:
+    pixiv (0.0.9)
+      mechanize (~> 2.0)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -25,8 +33,6 @@ GEM
     ntlm-http (0.1.1)
     pitcgi (0.1.0)
       scrambled_eggs
-    pixiv (0.0.9)
-      mechanize (~> 2.0)
     scrambled_eggs (0.1.0)
     unf (0.1.4)
       unf_ext
@@ -38,7 +44,7 @@ PLATFORMS
 
 DEPENDENCIES
   pitcgi
-  pixiv
+  pixiv!
 
 BUNDLED WITH
    1.15.1
