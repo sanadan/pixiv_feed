@@ -22,7 +22,6 @@ def main
     item = {}
     link = data.at( '.work' )[ 'href' ]
     item[ :link ] = URI.join( 'http://www.pixiv.net', link ).to_s
-    link2 = URI.join( 'http://touch.pixiv.net', link ).to_s
     thumbnail = ""
     if config[ 'thumbnail' ] then
       thumbnail = data.at( '._thumbnail' )[ 'data-src' ]
@@ -30,7 +29,7 @@ def main
       thumbnail.sub!( /_master/, '_square' )
       thumbnail = "<img src=\"#{thumbnail}\" border=\"0\">"
     end
-    item[ :content ] = "<a href=\"#{link2}\">mobile</a><br><a href=\"#{item[ :link ]}\">#{thumbnail}</a>"
+    item[ :content ] = "<a href=\"#{item[ :link ]}\">#{thumbnail}</a>"
     item[ :title ] = data.at( '.title' ).text
     item[ :date ] = Time.now
     
