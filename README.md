@@ -2,10 +2,9 @@
 pixivの自分の新着をatomフィードに変換します。
 
 ## install
-For Ubuntu 14.04/16.04
+For Ubuntu 18.04
 
 ```
-export EDITOR=vi
 cd /var/www
 git clone https://github.com/sanadan/pixiv_feed.git
 cd pixiv_feed
@@ -16,4 +15,5 @@ cd pixiv_feed
 MIT
 
 ## Copyright
-Copyright (C) 2015-2017 sanadan <jecy00@gmail.com>
+Copyright 2015-2018 sanadan <jecy00@gmail.com>
+
