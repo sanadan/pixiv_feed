@@ -6,7 +6,8 @@ PIXIV_URI = 'http://www.pixiv.net/bookmark_new_illust.php'
 require 'bundler/setup'
 Bundler.require
 require 'rss/maker'
-require 'pp'
+#require 'pp'
+require 'json'
 
 def main
   config = Pitcgi.get( PIXIV_PIT, :require => {
@@ -18,21 +19,16 @@ def main
   pixiv = Pixiv.client( config[ 'id' ], config[ 'password' ] )
   page = pixiv.agent.get( PIXIV_URI )
 
-  page.search( '.image-item' ).each do |data|
+  json = JSON.load( CGI.unescapeHTML( page.body.scan( /data-items=\"(.+?)\"/ )[ 0 ][ 0 ] ) )
+  json.each do |j|
+    #pp j
     item = {}
-    link = data.at( '.work' )[ 'href' ]
-    item[ :link ] = URI.join( 'http://www.pixiv.net', link ).to_s
-    thumbnail = ""
-    if config[ 'thumbnail' ] then
-      thumbnail = data.at( '._thumbnail' )[ 'data-src' ]
-      thumbnail.sub!( /150x150/, '128x128' )
-      thumbnail.sub!( /_master/, '_square' )
-      thumbnail = "<img src=\"#{thumbnail}\" border=\"0\">"
-    end
+    item[ :link ] = 'https://www.pixiv.net/member_illust.php?mode=medium&illust_id=' + j[ 'illustId' ]
+    item[ :title ] = j[ 'illustTitle' ]
+    thumbnail = config[ 'thumbnail' ] ? "<img src=\"#{j[ 'url' ]}\" border=\"0\">" : ''
     item[ :content ] = "<a href=\"#{item[ :link ]}\">#{thumbnail}</a>"
-    item[ :title ] = data.at( '.title' ).text
     item[ :date ] = Time.now
-    
+
     @feed_items << item
   end
 end
