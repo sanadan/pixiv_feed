@@ -5,6 +5,7 @@ pixivの自分の新着をatomフィードに変換します。
 For Ubuntu 18.04
 
 ```
+export EDITOR=vi
 cd /var/www
 git clone https://github.com/sanadan/pixiv_feed.git
 cd pixiv_feed
