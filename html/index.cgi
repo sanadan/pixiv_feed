@@ -25,7 +25,7 @@ def main
     item = {}
     item[ :link ] = 'https://www.pixiv.net/member_illust.php?mode=medium&illust_id=' + j[ 'illustId' ]
     item[ :title ] = j[ 'illustTitle' ]
-    thumbnail = config[ 'thumbnail' ] ? "<img src=\"https://embed.pixiv.net/decorate.php?illust_id=#{j[ 'illustId' ]}\" border=\"0\">" : ''
+    thumbnail = config[ 'thumbnail' ] ? "<img src=\"https://embed.pixiv.net/decorate.php?illust_id=#{j[ 'illustId' ]}\">" : ''
     item[ :content ] = "<a href=\"#{item[ :link ]}\">#{thumbnail}</a>"
     item[ :date ] = Time.now
 
@@ -58,13 +58,13 @@ feed = RSS::Maker.make( 'atom' ) do |maker|
  	maker.channel.link = PIXIV_URI
  	maker.channel.updated = Time.now
  	maker.channel.author = 'sanadan'
-	@feed_items.each do |data|
+	@feed_items.each do |d|
     item = maker.items.new_item
-	  item.id = data[ :id ] if data[ :id ]
-    item.link = data[ :link ] if data[ :link ]
-    item.title = data[ :title ]
-	  item.date = data[ :date ]
-	  item.content.content = data[ :content ]
+	  item.id = d[ :id ] if d[ :id ]
+    item.link = d[ :link ] if d[ :link ]
+    item.title = d[ :title ]
+	  item.date = d[ :date ]
+	  item.content.content = d[ :content ]
 	  item.content.type = 'html'
   end
 end
