@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 PIXIV_PIT = 'www.pixiv.net'
-PIXIV_URI = 'http://www.pixiv.net/bookmark_new_illust.php'
+PIXIV_URI = 'https://www.pixiv.net/bookmark_new_illust.php'
 
 require 'bundler/setup'
 Bundler.require
