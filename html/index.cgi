@@ -26,7 +26,7 @@ def main
     item[ :link ] = 'https://www.pixiv.net/member_illust.php?mode=medium&illust_id=' + j[ 'illustId' ]
     item[ :title ] = j[ 'illustTitle' ]
     thumbnail = config[ 'thumbnail' ] ? "<img src=\"https://embed.pixiv.net/decorate.php?illust_id=#{j[ 'illustId' ]}\">" : ''
-    item[ :content ] = "<a href=\"#{item[ :link ]}\">#{thumbnail}</a>"
+    item[:content] = "<a href=\"#{item[:link]}\">#{thumbnail}</a> #{j['userName']}"
     item[ :date ] = Time.now
 
     @feed_items << item
