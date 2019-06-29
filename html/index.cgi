@@ -1,16 +1,94 @@
 #!/usr/bin/env ruby
 
-PIXIV_URI = 'https://www.pixiv.net/bookmark_new_illust.php'
-
 require 'bundler/setup'
 Bundler.require
 require 'rss/maker'
 require 'json'
+require 'net/http'
+require 'tmpdir'
+
+DATA = {
+  client_id: 'MOBrBDS8blbauoSck0ZfDbtuzpyT',
+  client_secret: 'lsACyCD94FhDUtGTXi3QzcFE2uU1hqtDaKeqrdwj',
+  get_secure_url: 1
+}.freeze
+HEADER = {
+  'App-OS' => 'ios',
+  'App-OS-Version' => '9.3.3',
+  'App-Version' => '6.0.9'
+}.freeze
+PIXIV_URI = 'https://www.pixiv.net/bookmark_new_illust.php'
 
 Dotenv.load("#{__dir__}/../.env")
 
+def get(uri_s)
+  header = HEADER.dup
+  header['Authorization'] = "Bearer #{@token['access_token']}"
+  uri = URI.parse(uri_s)
+  http = Net::HTTP.new(uri.host, uri.port)
+  http.use_ssl = uri.scheme == 'https'
+  response = http.get(uri.request_uri, header)
+  if response.code == '400'
+    if @retry
+      @retry = false
+      File.delete(@token_file)
+      return response.body
+    end
+
+    @retry = true
+    json_s = login
+    return json_s if JSON.parse(json_s)['has_error']
+
+    return get(uri_s)
+  end
+  response.body
+end
+
+def login(username = nil, password = nil)
+  username ||= @username
+  if username
+    @username = username
+    @token_file = File.join(Dir.tmpdir, "pixiv.#{username}.token")
+    if File.exist?(@token_file)
+      @token = JSON.parse(File.read(@token_file))
+      return @token.to_json
+    end
+  end
+
+  uri = URI.parse('https://oauth.secure.pixiv.net/auth/token')
+  http = Net::HTTP.new(uri.host, uri.port)
+  http.use_ssl = uri.scheme == 'https'
+  data = DATA.dup
+  if username
+    data[:grant_type] = 'password'
+    data[:username] = username
+    data[:password] = password
+  elsif @token
+    data[:grant_type] = 'refresh_token'
+    data[:refresh_token] = @token['refresh_token']
+  else
+    return '{"has_error":true,"errors":{"system":{"message":"-1:ユーザー名とパスワードを設定してください","code":-1}}}'
+  end
+  post_data = data.map { |k, v| "#{k}=#{v}" }.join('&')
+  response = http.post(uri.request_uri, post_data, HEADER)
+  if response.code == '200' && @token.nil?
+    @token = JSON.parse(response.body)['response']
+    File.write(@token_file, @token.to_json)
+    File.chmod(0666, @token_file)
+  end
+  response.body
+end
+
+def illust_follow
+  get('https://app-api.pixiv.net/v2/illust/follow?restrict=public')
+end
+
 def main
-  json = JSON.load(`#{__dir__}/../pixiv_new_works.js #{ENV['PIXIV_USER']} #{ENV['PIXIV_PASS']}`)
+  json = JSON.parse(login(ENV['PIXIV_USER'], ENV['PIXIV_PASS']))
+  #pp json
+  raise json['errors']['system']['message'] if json['has_error']
+
+  json = JSON.parse(illust_follow)
   #pp json
   raise json['errors']['system']['message'] if json['has_error']
 
@@ -19,8 +97,7 @@ def main
     item = {}
     item[:link] = "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=#{j['id']}"
     item[:title] = j['title']
-    thumbnail = ENV['THUMBNAIL'] ? "<img src=\"https://embed.pixiv.net/dec
-orate.php?illust_id=#{j['id']}\">" : ''
+    thumbnail = ENV['THUMBNAIL'] ? "<img src=\"https://embed.pixiv.net/decorate.php?illust_id=#{j['id']}\">" : ''
     item[:content] = "<a href=\"#{item[:link]}\">#{thumbnail}</a> #{j['user']['name']}"
     item[:date] = j['create_date']
 
@@ -67,4 +144,3 @@ end
 print "Content-Type: application/atom+xml; charset=UTF-8\n"
 print "\n"
 print feed
-

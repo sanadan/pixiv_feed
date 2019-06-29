@@ -2,7 +2,6 @@
 
 cp env .env
 vi .env
-npm install --save
 bundle install
 html/index.cgi
 sudo ln -s /var/www/pixiv_feed/pixiv_feed.conf /etc/apache2/conf-enabled
