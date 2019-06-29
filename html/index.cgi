@@ -7,7 +7,7 @@ Bundler.require
 require 'rss/maker'
 require 'json'
 
-Dotenv.load
+Dotenv.load("#{__dir__}/../.env")
 
 def main
   json = JSON.load(`#{__dir__}/../pixiv_new_works.js #{ENV['PIXIV_USER']} #{ENV['PIXIV_PASS']}`)
@@ -19,7 +19,8 @@ def main
     item = {}
     item[:link] = "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=#{j['id']}"
     item[:title] = j['title']
-    thumbnail = ENV['THUMBNAIL'] ? "<img src=\"#{j['image_urls']['medium']}\">" : ''
+    thumbnail = ENV['THUMBNAIL'] ? "<img src=\"https://embed.pixiv.net/dec
+orate.php?illust_id=#{j['id']}\">" : ''
     item[:content] = "<a href=\"#{item[:link]}\">#{thumbnail}</a> #{j['user']['name']}"
     item[:date] = j['create_date']
 
