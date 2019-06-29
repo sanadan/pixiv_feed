@@ -1,33 +1,28 @@
 #!/usr/bin/env ruby
 
-PIXIV_PIT = 'www.pixiv.net'
 PIXIV_URI = 'https://www.pixiv.net/bookmark_new_illust.php'
 
 require 'bundler/setup'
 Bundler.require
 require 'rss/maker'
-#require 'pp'
 require 'json'
 
+Dotenv.load("#{__dir__}/../.env")
+
 def main
-  config = Pitcgi.get( PIXIV_PIT, :require => {
-    "id" => "pixiv ID or mail address",
-    "password" => "Password",
-    "thumbnail" => 'true or false'
-  })
+  json = JSON.load(`#{__dir__}/../pixiv_new_works.js #{ENV['PIXIV_USER']} #{ENV['PIXIV_PASS']}`)
+  #pp json
+  raise json['errors']['system']['message'] if json['has_error']
 
-  pixiv = Pixiv.client( config[ 'id' ], config[ 'password' ] )
-  page = pixiv.agent.get( PIXIV_URI )
-
-  json = JSON.load( CGI.unescapeHTML( page.body.scan( /data-items=\"(.+?)\"/ )[ 0 ][ 0 ] ) )
-  json.each do |j|
+  json['illusts'].each do |j|
     #pp j
     item = {}
-    item[ :link ] = 'https://www.pixiv.net/member_illust.php?mode=medium&illust_id=' + j[ 'illustId' ]
-    item[ :title ] = j[ 'illustTitle' ]
-    thumbnail = config[ 'thumbnail' ] ? "<img src=\"https://embed.pixiv.net/decorate.php?illust_id=#{j[ 'illustId' ]}\">" : ''
-    item[:content] = "<a href=\"#{item[:link]}\">#{thumbnail}</a> #{j['userName']}"
-    item[ :date ] = Time.now
+    item[:link] = "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=#{j['id']}"
+    item[:title] = j['title']
+    thumbnail = ENV['THUMBNAIL'] ? "<img src=\"https://embed.pixiv.net/dec
+orate.php?illust_id=#{j['id']}\">" : ''
+    item[:content] = "<a href=\"#{item[:link]}\">#{thumbnail}</a> #{j['user']['name']}"
+    item[:date] = j['create_date']
 
     @feed_items << item
   end

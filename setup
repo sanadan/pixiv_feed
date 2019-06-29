@@ -1,6 +1,9 @@
 #!/bin/sh
+
+cp env .env
+vi .env
+npm install --save
 bundle install
-pitcgi init
 html/index.cgi
 sudo ln -s /var/www/pixiv_feed/pixiv_feed.conf /etc/apache2/conf-enabled
 sudo service apache2 restart

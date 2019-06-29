@@ -1,6 +1,10 @@
 # pixiv_feed
 pixivの自分の新着をatomフィードに変換します。
 
+## require
+node (12.4.0)
+ruby (2.6.3)
+
 ## install
 For Ubuntu 18.04
 
