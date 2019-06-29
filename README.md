@@ -2,8 +2,7 @@
 pixivの自分の新着をatomフィードに変換します。
 
 ## require
-node (12.4.0)
-ruby (2.6.3)
+ruby （2.6.3で確認）
 
 ## install
 For Ubuntu 18.04
@@ -20,5 +19,5 @@ cd pixiv_feed
 MIT
 
 ## Copyright
-Copyright 2015-2018 sanadan <jecy00@gmail.com>
+Copyright 2019 sanadan <jecy00@gmail.com>
 
