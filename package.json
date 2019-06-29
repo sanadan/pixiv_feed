@@ -4,7 +4,8 @@
   "description": "PIXIVフォロー新着作品",
   "main": "pixiv_new_works.js",
   "dependencies": {
-    "pixiv-api-client": "^0.18.0"
+    "pixiv-api-client": "^0.18.0",
+    "axios": ">=0.18.1"
   },
   "devDependencies": {},
   "scripts": {
