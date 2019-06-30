@@ -46,36 +46,38 @@ def get(uri_s)
 end
 
 def login(username = nil, password = nil)
-  username ||= @username
   if username
     @username = username
-    @token_file = File.join(Dir.tmpdir, "pixiv.#{username}.token")
-    if File.exist?(@token_file)
-      @token = JSON.parse(File.read(@token_file))
-      return @token.to_json
-    end
+  elsif @username.nil?
+    return '{"has_error":true,"errors":{"system":{"message":"-1:ユーザー名を設定してください","code":-1}}}'
+  end
+
+  @token_file = File.join(Dir.tmpdir, "pixiv.#{@username}.token")
+  if @token.nil? && File.exist?(@token_file)
+    @token = JSON.parse(File.read(@token_file))
+    return @token.to_json
+  end
+
+  data = DATA.dup
+  if @token
+    data[:grant_type] = 'refresh_token'
+    data[:refresh_token] = @token['refresh_token']
+  elsif password
+    data[:grant_type] = 'password'
+    data[:username] = @username
+    data[:password] = password
+  else
+    return '{"has_error":true,"errors":{"system":{"message":"-2:パスワードを設定してください","code":-2}}}'
   end
 
   uri = URI.parse('https://oauth.secure.pixiv.net/auth/token')
   http = Net::HTTP.new(uri.host, uri.port)
   http.use_ssl = uri.scheme == 'https'
-  data = DATA.dup
-  if username
-    data[:grant_type] = 'password'
-    data[:username] = username
-    data[:password] = password
-  elsif @token
-    data[:grant_type] = 'refresh_token'
-    data[:refresh_token] = @token['refresh_token']
-  else
-    return '{"has_error":true,"errors":{"system":{"message":"-1:ユーザー名とパスワードを設定してください","code":-1}}}'
-  end
   post_data = data.map { |k, v| "#{k}=#{v}" }.join('&')
   response = http.post(uri.request_uri, post_data, HEADER)
   if response.code == '200'
     @token = JSON.parse(response.body)['response']
     File.write(@token_file, @token.to_json)
-    File.chmod(0666, @token_file)
   end
   response.body
 end
