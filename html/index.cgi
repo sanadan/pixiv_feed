@@ -37,6 +37,7 @@ def get(uri_s)
 
     @retry = true
     json_s = login
+    # File.write('retry.log', json_s)
     return json_s if JSON.parse(json_s)['has_error']
 
     return get(uri_s)
@@ -71,7 +72,7 @@ def login(username = nil, password = nil)
   end
   post_data = data.map { |k, v| "#{k}=#{v}" }.join('&')
   response = http.post(uri.request_uri, post_data, HEADER)
-  if response.code == '200' && @token.nil?
+  if response.code == '200'
     @token = JSON.parse(response.body)['response']
     File.write(@token_file, @token.to_json)
     File.chmod(0666, @token_file)
@@ -91,6 +92,7 @@ def main
   json = JSON.parse(illust_follow)
   #pp json
   raise json['errors']['system']['message'] if json['has_error']
+  raise json.to_json if json['illusts'].nil?
 
   json['illusts'].each do |j|
     #pp j
@@ -144,3 +146,4 @@ end
 print "Content-Type: application/atom+xml; charset=UTF-8\n"
 print "\n"
 print feed
+
