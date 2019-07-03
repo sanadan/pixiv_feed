@@ -1,3 +1,18 @@
-AllCops:
-  RunRailsCops: true
+Layout/AlignArguments:
+  EnforcedStyle: with_fixed_indentation
+
+Layout/TrailingBlankLines:
+  Enabled: false
+
+Metrics/AbcSize:
+  Max: 25
+
+Metrics/LineLength:
+  Max: 120
+
+Metrics/MethodLength:
+  Max: 20
+
+Style/AsciiComments:
+  Enabled: false
 
