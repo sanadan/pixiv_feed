@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 
 require 'bundler/setup'
 Bundler.require
@@ -6,6 +7,8 @@ require 'rss/maker'
 require 'json'
 require 'net/http'
 require 'tmpdir'
+require 'time'
+require 'digest/md5'
 
 DATA = {
   client_id: 'MOBrBDS8blbauoSck0ZfDbtuzpyT',
@@ -13,11 +16,10 @@ DATA = {
   get_secure_url: 1
 }.freeze
 HEADER = {
-  'App-OS' => 'ios',
-  'App-OS-Version' => '9.3.3',
-  'App-Version' => '6.0.9'
+  'User-Agent' => 'PixivAndroidApp/5.0.64 (Android 6.0)'
 }.freeze
 PIXIV_URI = 'https://www.pixiv.net/bookmark_new_illust.php'
+HASH_SECRET = '28c1fdd170a5204386cb1313c7077b34f83e4aaf4aa829ce78c231e05b0bae2c'
 
 Dotenv.load("#{__dir__}/../.env")
 
@@ -74,7 +76,11 @@ def login(username = nil, password = nil)
   http = Net::HTTP.new(uri.host, uri.port)
   http.use_ssl = uri.scheme == 'https'
   post_data = data.map { |k, v| "#{k}=#{v}" }.join('&')
-  response = http.post(uri.request_uri, post_data, HEADER)
+  local_time = Time.now.iso8601
+  header = HEADER.dup
+  header['X-Client-Time'] = local_time
+  header['X-Client-Hash'] = Digest::MD5.hexdigest(local_time + HASH_SECRET)
+  response = http.post(uri.request_uri, post_data, header)
   if response.code == '200'
     @token = JSON.parse(response.body)['response']
     File.write(@token_file, @token.to_json)

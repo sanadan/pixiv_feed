@@ -1,3 +1,26 @@
-AllCops:
-  RunRailsCops: true
+require: rubocop-rails
+
+Bundler/OrderedGems:
+  Enabled: false
+
+Layout/MultilineMethodCallIndentation:
+  EnforcedStyle: indented # default: aligned
+
+Layout/TrailingBlankLines:
+  Enabled: false
+
+Metrics/AbcSize:
+  Max: 20 # default: 15
+
+Metrics/LineLength:
+  Max: 120  # default: 80
+
+Metrics/MethodLength:
+  Max: 20 # default: 10
+
+Style/Documentation:
+  Enabled: false
+
+Style/SymbolArray:
+  Enabled: false
 
