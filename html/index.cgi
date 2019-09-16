@@ -6,6 +6,8 @@ Bundler.require
 require 'rss/maker'
 require 'json'
 require 'tmpdir'
+require 'time'
+require 'digest/md5'
 
 DATA = {
   client_id: 'MOBrBDS8blbauoSck0ZfDbtuzpyT',
@@ -13,11 +15,10 @@ DATA = {
   get_secure_url: 1
 }.freeze
 HEADERS = {
-  'App-OS' => 'ios',
-  'App-OS-Version' => '9.3.3',
-  'App-Version' => '6.0.9'
+  'User-Agent' => 'PixivAndroidApp/5.0.64 (Android 6.0)'
 }.freeze
 PIXIV_URI = 'https://www.pixiv.net/bookmark_new_illust.php'
+HASH_SECRET = '28c1fdd170a5204386cb1313c7077b34f83e4aaf4aa829ce78c231e05b0bae2c'
 
 Dotenv.load("#{__dir__}/../.env")
 @client = OAuth2::Client.new(DATA[:client_id], DATA[:client_secret],
@@ -53,8 +54,12 @@ def login(username, password)
     return @token
   end
 
+  local_time = Time.now.iso8601
+  headers = HEADERS.dup
+  headers['X-Client-Time'] = local_time
+  headers['X-Client-Hash'] = Digest::MD5.hexdigest(local_time + HASH_SECRET)
   client = OAuth2::Client.new(DATA[:client_id], DATA[:client_secret],
-    site: 'https://oauth.secure.pixiv.net', headers: HEADERS)
+    site: 'https://oauth.secure.pixiv.net', headers: headers)
   client.options[:token_url] = '/auth/token'
   begin
     # 2019/06/30現在、pixivのoauthのレスポンスが標準的ではないため、必ず
