@@ -1,18 +1,26 @@
-Layout/AlignArguments:
-  EnforcedStyle: with_fixed_indentation
+require: rubocop-rails
+
+Bundler/OrderedGems:
+  Enabled: false
+
+Layout/MultilineMethodCallIndentation:
+  EnforcedStyle: indented # default: aligned
 
 Layout/TrailingBlankLines:
   Enabled: false
 
 Metrics/AbcSize:
-  Max: 25
+  Max: 20 # default: 15
 
 Metrics/LineLength:
-  Max: 120
+  Max: 120  # default: 80
 
 Metrics/MethodLength:
-  Max: 20
+  Max: 20 # default: 10
 
-Style/AsciiComments:
+Style/Documentation:
+  Enabled: false
+
+Style/SymbolArray:
   Enabled: false
 

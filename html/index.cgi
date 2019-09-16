@@ -5,6 +5,7 @@ require 'bundler/setup'
 Bundler.require
 require 'rss/maker'
 require 'json'
+require 'net/http'
 require 'tmpdir'
 require 'time'
 require 'digest/md5'
@@ -14,76 +15,95 @@ DATA = {
   client_secret: 'lsACyCD94FhDUtGTXi3QzcFE2uU1hqtDaKeqrdwj',
   get_secure_url: 1
 }.freeze
-HEADERS = {
+HEADER = {
   'User-Agent' => 'PixivAndroidApp/5.0.64 (Android 6.0)'
 }.freeze
 PIXIV_URI = 'https://www.pixiv.net/bookmark_new_illust.php'
 HASH_SECRET = '28c1fdd170a5204386cb1313c7077b34f83e4aaf4aa829ce78c231e05b0bae2c'
 
 Dotenv.load("#{__dir__}/../.env")
-@client = OAuth2::Client.new(DATA[:client_id], DATA[:client_secret],
-  site: 'https://app-api.pixiv.net', headers: HEADERS)
 
 def get(uri_s)
-  if @token.expired?
-    # 2019/06/30現在、pixivのoauthのレスポンスが標準的ではないため、必ず
-    # OAuth2::Errorが発生する
-    client = OAuth2::Client.new(DATA[:client_id], DATA[:client_secret],
-      site: 'https://oauth.secure.pixiv.net', headers: HEADERS)
-    client.options[:token_url] = '/auth/token'
-    token = OAuth2::AccessToken.from_hash(client, @token.to_hash)
-    begin
-      token.refresh!
-    rescue OAuth2::Error => e
-      token = e.response.parsed['response']
-      raise e if token.nil?
-
-      @token = OAuth2::AccessToken.from_hash(@client, token)
+  header = HEADER.dup
+  header['Authorization'] = "Bearer #{@token['access_token']}"
+  uri = URI.parse(uri_s)
+  http = Net::HTTP.new(uri.host, uri.port)
+  http.use_ssl = uri.scheme == 'https'
+  response = http.get(uri.request_uri, header)
+  if response.code == '400'
+    if @retry
+      @retry = false
+      File.delete(@token_file)
+      return response.body
     end
-    File.write(@token_file, @token.to_hash.to_json)
-  end
 
-  @token.get(uri_s)
+    @retry = true
+    json_s = login
+    # File.write('retry.log', json_s)
+    return json_s if JSON.parse(json_s)['has_error']
+
+    return get(uri_s)
+  end
+  response.body
 end
 
-def login(username, password)
-  @token_file = File.join(Dir.tmpdir, "pixiv.#{username}.token")
+def login(username = nil, password = nil)
+  if username
+    @username = username
+  elsif @username.nil?
+    return '{"has_error":true,"errors":{"system":{"message":"-1:ユーザー名を設定してください","code":-1}}}'
+  end
+
+  @token_file = File.join(Dir.tmpdir, "pixiv.#{@username}.token")
   if @token.nil? && File.exist?(@token_file)
-    @token = OAuth2::AccessToken.from_hash(@client,
-      JSON.parse(File.read(@token_file)))
-    return @token
+    @token = JSON.parse(File.read(@token_file))
+    return @token.to_json
   end
 
+  data = DATA.dup
+  if @token
+    data[:grant_type] = 'refresh_token'
+    data[:refresh_token] = @token['refresh_token']
+  elsif password
+    data[:grant_type] = 'password'
+    data[:username] = @username
+    data[:password] = password
+  else
+    return '{"has_error":true,"errors":{"system":{"message":"-2:パスワードを設定してください","code":-2}}}'
+  end
+
+  uri = URI.parse('https://oauth.secure.pixiv.net/auth/token')
+  http = Net::HTTP.new(uri.host, uri.port)
+  http.use_ssl = uri.scheme == 'https'
+  post_data = data.map { |k, v| "#{k}=#{v}" }.join('&')
   local_time = Time.now.iso8601
-  headers = HEADERS.dup
-  headers['X-Client-Time'] = local_time
-  headers['X-Client-Hash'] = Digest::MD5.hexdigest(local_time + HASH_SECRET)
-  client = OAuth2::Client.new(DATA[:client_id], DATA[:client_secret],
-    site: 'https://oauth.secure.pixiv.net', headers: headers)
-  client.options[:token_url] = '/auth/token'
-  begin
-    # 2019/06/30現在、pixivのoauthのレスポンスが標準的ではないため、必ず
-    # OAuth2::Errorが発生する
-    client.password.get_token(username, password, get_secure_url: 1)
-  rescue OAuth2::Error => e
-    token = e.response.parsed['response']
-    raise e if token.nil?
-
-    @token = OAuth2::AccessToken.from_hash(@client, token)
+  header = HEADER.dup
+  header['X-Client-Time'] = local_time
+  header['X-Client-Hash'] = Digest::MD5.hexdigest(local_time + HASH_SECRET)
+  response = http.post(uri.request_uri, post_data, header)
+  if response.code == '200'
+    @token = JSON.parse(response.body)['response']
+    File.write(@token_file, @token.to_json)
   end
-  File.write(@token_file, @token.to_hash.to_json)
-  @token
+  response.body
 end
 
 def illust_follow
-  get('/v2/illust/follow?restrict=public')
+  get('https://app-api.pixiv.net/v2/illust/follow?restrict=public')
 end
 
 def main
-  login(ENV['PIXIV_USER'], ENV['PIXIV_PASS'])
-  data = illust_follow.parsed
+  json = JSON.parse(login(ENV['PIXIV_USER'], ENV['PIXIV_PASS']))
+  #pp json
+  raise json['errors']['system']['message'] if json['has_error']
 
-  data['illusts'].each do |j|
+  json = JSON.parse(illust_follow)
+  #pp json
+  raise json['errors']['system']['message'] if json['has_error']
+  raise json.to_json if json['illusts'].nil?
+
+  json['illusts'].each do |j|
+    #pp j
     item = {}
     item[:link] = "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=#{j['id']}"
     item[:title] = j['title']
@@ -99,39 +119,39 @@ end
 @feed_items = []
 begin
   main
-rescue StandardError => e
+rescue
   data = {}
-  data[:id] = Time.now.strftime('%Y%m%d%H%M%S')
-  data[:title] = e.to_s
-  data[:content] = e.to_s
-  e.backtrace.each do |trace|
-    data[:content] += '<br>'
-    data[:content] += trace
+  data[ :id ] = Time.now.strftime( '%Y%m%d%H%M%S' )
+  data[ :title ] = $!.to_s
+  data[ :content ] = $!.to_s
+  $!.backtrace.each do |trace|
+    data[ :content ] += '<br>'
+    data[ :content ] += trace
   end
-  data[:date] = Time.now
+  data[ :date ] = Time.now
 
   @feed_items << data
 end
 
-feed = RSS::Maker.make('atom') do |maker|
-  maker.channel.about = 'pixiv_feed'
-  maker.channel.title = 'pixivフォロー新着作品'
-  maker.channel.description = 'pixivフォロー新着作品のフィードです'
-  maker.channel.link = PIXIV_URI
-  maker.channel.updated = Time.now
-  maker.channel.author = 'sanadan'
-  @feed_items.each do |d|
+feed = RSS::Maker.make( 'atom' ) do |maker|
+	maker.channel.about = 'pixiv_feed'
+	maker.channel.title = 'pixivフォロー新着作品'
+ 	maker.channel.description = 'pixivフォロー新着作品のフィードです'
+ 	maker.channel.link = PIXIV_URI
+ 	maker.channel.updated = Time.now
+ 	maker.channel.author = 'sanadan'
+	@feed_items.each do |d|
     item = maker.items.new_item
-    item.id = d[:id] if d[:id]
-    item.link = d[:link] if d[:link]
-    item.title = d[:title]
-    item.date = d[:date]
-    item.content.content = d[:content]
-    item.content.type = 'html'
+	  item.id = d[ :id ] if d[ :id ]
+    item.link = d[ :link ] if d[ :link ]
+    item.title = d[ :title ]
+	  item.date = d[ :date ]
+	  item.content.content = d[ :content ]
+	  item.content.type = 'html'
   end
 end
 
-puts 'Content-Type: application/atom+xml; charset=UTF-8'
-puts
-puts feed
+print "Content-Type: application/atom+xml; charset=UTF-8\n"
+print "\n"
+print feed
 
