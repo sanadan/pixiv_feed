@@ -47,7 +47,7 @@ def get(uri_s)
   response.body
 end
 
-def login(username = nil, password = nil)
+def login(username = nil, password = nil) # rubocop:disable Metrics/PerceivedComplexity, Metrics/MethodLength, Metrics/CyclomaticComplexity, Metrics/LineLength
   if username
     @username = username
   elsif @username.nil?
@@ -137,7 +137,9 @@ feed = RSS::Maker.make( 'atom' ) do |maker|
 	maker.channel.about = 'pixiv_feed'
 	maker.channel.title = 'pixivフォロー新着作品'
  	maker.channel.description = 'pixivフォロー新着作品のフィードです'
- 	maker.channel.link = PIXIV_URI
+  # 2019/09/18 Feedeenからpixivのfaviconを取得しようとするとエラーになるの
+  # で、linkを設定しないようにした
+ 	# maker.channel.link = PIXIV_URI
  	maker.channel.updated = Time.now
  	maker.channel.author = 'sanadan'
 	@feed_items.each do |d|

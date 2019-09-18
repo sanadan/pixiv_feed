@@ -10,7 +10,7 @@ Layout/TrailingBlankLines:
   Enabled: false
 
 Metrics/AbcSize:
-  Max: 20 # default: 15
+  Max: 40 # default: 15
 
 Metrics/LineLength:
   Max: 120  # default: 80
