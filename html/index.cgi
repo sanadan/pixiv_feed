@@ -47,7 +47,7 @@ def get(uri_s)
   response.body
 end
 
-def login(username = nil, password = nil) # rubocop:disable Metrics/PerceivedComplexity, Metrics/MethodLength, Metrics/CyclomaticComplexity, Metrics/LineLength
+def login(username = nil, password = nil) # rubocop:disable Metrics/PerceivedComplexity, Metrics/MethodLength, Metrics/CyclomaticComplexity
   if username
     @username = username
   elsif @username.nil?
@@ -94,7 +94,7 @@ end
 
 def main
   json = JSON.parse(login(ENV['PIXIV_USER'], ENV['PIXIV_PASS']))
-  #pp json
+  # pp json
   raise json['errors']['system']['message'] if json['has_error']
 
   json = JSON.parse(illust_follow)
@@ -106,9 +106,10 @@ def main
     #pp j
     item = {}
     item[:link] = "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=#{j['id']}"
-    item[:title] = j['title']
+    user_name = j['user']['name']
+    item[:title] = "#{j['title']} / #{user_name}"
     thumbnail = ENV['THUMBNAIL'] ? "<img src=\"https://embed.pixiv.net/decorate.php?illust_id=#{j['id']}\">" : ''
-    item[:content] = "<a href=\"#{item[:link]}\">#{thumbnail}</a> #{j['user']['name']}"
+    item[:content] = "<a href=\"#{item[:link]}\">#{thumbnail}</a> #{user_name}"
     item[:date] = j['create_date']
 
     @feed_items << item
