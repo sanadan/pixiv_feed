@@ -106,10 +106,9 @@ def main
     #pp j
     item = {}
     item[:link] = "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=#{j['id']}"
-    user_name = j['user']['name']
-    item[:title] = "#{j['title']} / #{user_name}"
+    item[:title] = "#{j['title']} / #{j['user']['name']}"
     thumbnail = ENV['THUMBNAIL'] ? "<img src=\"https://embed.pixiv.net/decorate.php?illust_id=#{j['id']}\">" : ''
-    item[:content] = "<a href=\"#{item[:link]}\">#{thumbnail}</a> #{user_name}"
+    item[:content] = "<a href=\"#{item[:link]}\">#{thumbnail}</a>"
     item[:date] = j['create_date']
 
     @feed_items << item
