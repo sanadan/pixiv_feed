@@ -25,7 +25,8 @@ Dotenv.load("#{__dir__}/../.env")
 
 def get(uri_s)
   header = HEADER.dup
-  header['Authorization'] = "Bearer #{@token['access_token']}"
+  # header['Authorization'] = "Bearer #{@token['access_token']}"
+  header['Authorization'] = "Bearer #{ENV['ACCESS_TOKEN']}"
   uri = URI.parse(uri_s)
   http = Net::HTTP.new(uri.host, uri.port)
   http.use_ssl = uri.scheme == 'https'
@@ -93,9 +94,9 @@ def illust_follow
 end
 
 def main
-  json = JSON.parse(login(ENV['PIXIV_USER'], ENV['PIXIV_PASS']))
+  # json = JSON.parse(login(ENV['PIXIV_USER'], ENV['PIXIV_PASS']))
   # pp json
-  raise json['errors']['system']['message'] if json['has_error']
+  # raise json['errors']['system']['message'] if json['has_error']
 
   json = JSON.parse(illust_follow)
   #pp json
